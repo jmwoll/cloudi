@@ -62,6 +62,13 @@ func requestHandler(connection net.Conn) {
 	if requestType == "listAllFiles" {
 		sendAllFilesInformation(connection)
 	}
+	if requestType == "pushFile" {
+		getFileFromClient(connection)
+	}
+}
+
+func getFileFromClient(connection net.Conn) {
+	fmt.Println("getting file form client")
 }
 
 

@@ -22,7 +22,7 @@ func main() {
   // --- Modified the server to receive the filename from 
   // --- the client. So the client now needs to send
   // --- the filename of interest to server. Let's do this here:
-  fileNameQuery := os.Args[1]
+  fileNameQuery := fillString(os.Args[1],64)
   fmt.Println("fileNameQuery="+fileNameQuery)
   connection.Write([]byte(fileNameQuery))
   // ---
@@ -62,4 +62,17 @@ func main() {
 		receivedBytes += BUFFERSIZE
 	}
 	fmt.Println("Received file completely!")
+}
+
+
+func fillString(retunString string, toLength int) string {
+	for {
+		lengtString := len(retunString)
+		if lengtString < toLength {
+			retunString = retunString + ":"
+			continue
+		}
+		break
+	}
+	return retunString
 }

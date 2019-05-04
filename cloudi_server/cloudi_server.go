@@ -39,11 +39,11 @@ func sendFileToClient(connection net.Conn) {
   // --- the connection.
   bufferFileName := make([]byte, 64)
   connection.Read(bufferFileName)
-  fmt.Println("So you want this file:")
+  fmt.Println("Client Query:")
   fileNameFromClient := strings.Trim(string(bufferFileName), ":")
   fmt.Println(fileNameFromClient)
   // ---
-	file, err := os.Open("test.png")
+	file, err := os.Open(fileNameFromClient)
 	if err != nil {
 		fmt.Println(err)
 		return

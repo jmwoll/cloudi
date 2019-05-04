@@ -1,3 +1,5 @@
 cloudi_client/cloudi_client
 cloudi_server/cloudi_server
 *.swp
+*.png
+*.dat

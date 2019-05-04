@@ -8,7 +8,7 @@ func showDebugMessages () bool {
 	return false
 }
 
-func debug(msg string){
+func debugMsg(msg string){
 	if showDebugMessages() {
 		fmt.Println(msg)
 	}

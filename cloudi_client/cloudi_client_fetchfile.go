@@ -16,10 +16,13 @@ import (
 const BUFFERSIZE = 1024
 
 func fetchFile(fileNameQueryArg string) string {
+  serverAddress := "localhost:27001"
   statusCode := "" /* Empty string signals success */
-	connection, err := net.Dial("tcp", "localhost:27001")
+	connection, err := net.Dial("tcp", serverAddress)
 	if err != nil {
-		//panic(err)
+    //panic(err)
+    statusCode += "Error trying to connect to server"
+    statusCode += serverAddress
     statusCode = err.Error()
     return statusCode
   }
@@ -28,7 +31,7 @@ func fetchFile(fileNameQueryArg string) string {
   // --- the client. So the client now needs to send
   // --- the filename of interest to server. Let's do this here:
   fileNameQuery := fillString(fileNameQueryArg,512)
-  fmt.Println("fileNameQuery="+fileNameQuery)
+  debugMsg("fileNameQuery="+fileNameQuery)
   connection.Write([]byte(fileNameQuery))
   // ---
   // ---
@@ -39,7 +42,7 @@ func fetchFile(fileNameQueryArg string) string {
   // --- request coming from the client. This way, the user wont
   // --- stumble over his own feet if he has a single typo...
   // ---
-	fmt.Println("Connected to server, start receiving the file name and file size")
+	debugMsg("Connected to server, start receiving the file name and file size")
 	bufferFileName := make([]byte, 512)
 	bufferFileSize := make([]byte, 10)
 	
@@ -53,6 +56,8 @@ func fetchFile(fileNameQueryArg string) string {
 	
 	if err != nil {
     //panic(err)
+    statusCode += "Error: file '"+strings.Trim(fileNameQuery,":")+"' not found on server\n"
+    statusCode += fileName
     statusCode += err.Error()
     return statusCode
 	}
@@ -68,11 +73,11 @@ func fetchFile(fileNameQueryArg string) string {
 		io.CopyN(newFile, connection, BUFFERSIZE)
 		receivedBytes += BUFFERSIZE
 	}
-  fmt.Println("Received file completely!")
+  debugMsg("Received file completely!")
   shaHashServer := make([]byte, 20)
   connection.Read(shaHashServer)
-  fmt.Println("The sha1 hash of the received file:")
-  fmt.Printf("%x",shaHashServer)
+  debugMsg("The sha1 hash of the received file:")
+  debugMsg(fmt.Sprintf("%x",shaHashServer))
   // --- Now we can compar the sha1 hash that
   // --- the file should have based on the info 
   // --- above with the sha1 hash we actually
@@ -81,17 +86,18 @@ func fetchFile(fileNameQueryArg string) string {
   fileBytes,err := ioutil.ReadFile(fileName)
   h.Write(fileBytes)
   hashSumClient := h.Sum(nil)
-  fmt.Println("actual client hash:")
-  fmt.Printf("%x",hashSumClient)
+  debugMsg("actual client hash:")
+  debugMsg(fmt.Sprintf("%x",hashSumClient))
   hashSumClientAsByteArray := make([]byte,20)
   for idx,b := range hashSumClient {
     hashSumClientAsByteArray[idx] = b
   }
   if byteArraysEqual(shaHashServer,hashSumClientAsByteArray) {
-    fmt.Println("sha1 hash matches")
+    debugMsg("sha1 hash matches")
   }else{
-    fmt.Println("sha1 hash do not match:")
-    fmt.Printf("%x (on client) != %x (on server)", hashSumClientAsByteArray, shaHashServer)
+    debugMsg("sha1 hash do not match:")
+    debugMsg(fmt.Sprintf("%x (on client) != %x (on server)",
+     hashSumClientAsByteArray, shaHashServer))
     statusCode += "Error receiving file from server:\n"
     statusCode += "sha1 hashes do not match:"
     statusCode += fmt.Sprintf("%x (on client) != %x (on server)", hashSumClientAsByteArray, shaHashServer)

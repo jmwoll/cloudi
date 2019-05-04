@@ -37,7 +37,10 @@ func main(){
 		}
 		if ratio > levenstheinMinimumRatio() { 
 			fmt.Print(ansiColor("green"))
-			fmt.Println("found file and copied it into cwd:"+fileFound)
+			fmt.Println("found file and copied it into cwd:\t"+fileFound)
+		} else {
+			fmt.Print(ansiColor("yellow"))
+			fmt.Println("could not find file:\t"+fileQuery)
 		}
 	}
 

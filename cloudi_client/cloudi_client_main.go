@@ -35,6 +35,7 @@ func main(){
 			fmt.Print(ansiColor("red"))
 			fmt.Println(statusMsg)
 		}
+		fmt.Printf("levensthein=%f",ratio)
 		if ratio > levenstheinMinimumRatio() { 
 			fmt.Print(ansiColor("green"))
 			fmt.Println("found file and copied it into cwd:\t"+fileFound)

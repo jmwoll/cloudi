@@ -90,7 +90,7 @@ func levenshteinDistance(s, t string) int {
 }
 
 func levenstheinMinimumRatio() float64 {
-    return 0.25
+    return -0.25
 }
 
 func findFile (toFind, serverAddress string) (float64,string,string) {
@@ -109,7 +109,7 @@ func findFile (toFind, serverAddress string) (float64,string,string) {
         curDist := levenshteinDistance(file,toFind)
         maxL := math.Max(float64(len(file)),float64(len(toFind)))
         ratio = float64(curDist) / maxL
-        ratio = 1.0 - ratio
+        //ratio = 1.0 - ratio
         if curDist < minDist && ratio > levenstheinMinimumRatio() {
             minDist = curDist
             matchedFile = file

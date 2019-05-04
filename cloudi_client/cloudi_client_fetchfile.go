@@ -15,11 +15,14 @@ import (
 // Needs to be same as in server...
 const BUFFERSIZE = 1024
 
-func fetchFile(fileNameQueryArg string) {
+func fetchFile(fileNameQueryArg string) string {
+  statusCode := "" /* Empty string signals success */
 	connection, err := net.Dial("tcp", "localhost:27001")
 	if err != nil {
-		panic(err)
-	}
+		//panic(err)
+    statusCode = err.Error()
+    return statusCode
+  }
   defer connection.Close()
   // --- Modified the server to receive the filename from 
   // --- the client. So the client now needs to send
@@ -49,7 +52,9 @@ func fetchFile(fileNameQueryArg string) {
 	newFile, err := os.Create(fileName)
 	
 	if err != nil {
-		panic(err)
+    //panic(err)
+    statusCode += err.Error()
+    return statusCode
 	}
 	defer newFile.Close()
 	var receivedBytes int64
@@ -87,7 +92,11 @@ func fetchFile(fileNameQueryArg string) {
   }else{
     fmt.Println("sha1 hash do not match:")
     fmt.Printf("%x (on client) != %x (on server)", hashSumClientAsByteArray, shaHashServer)
+    statusCode += "Error receiving file from server:\n"
+    statusCode += "sha1 hashes do not match:"
+    statusCode += fmt.Sprintf("%x (on client) != %x (on server)", hashSumClientAsByteArray, shaHashServer)
   }
+  return statusCode
 }
 
 

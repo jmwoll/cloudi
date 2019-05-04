@@ -1,10 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 )
 
 func main(){
 	fileToFetch := os.Args[1]
-	fetchFile(fileToFetch)
+	statusMsg := fetchFile(fileToFetch)
+	if statusMsg != "" {
+		fmt.Println(statusMsg)
+	}
 }

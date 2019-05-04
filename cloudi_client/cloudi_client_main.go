@@ -15,4 +15,11 @@ func main(){
 			fmt.Println(statusMsg)
 		}
 	}
+	if actionType == "list" {
+		allFiles,statusMsg := listAllFiles(serverAddress)
+		if statusMsg != "" {
+			fmt.Println(statusMsg)
+			fmt.Println(allFiles)
+		}
+	} 
 }

@@ -44,10 +44,10 @@ func levenshteinDistance(s, t string) int {
 
 
 
-func  allFilesOnServer () []string {
+func  listAllFiles (serverAdress string) ([]string,string) {
 	//[]string rslt = nil
 
-	return nil //rslt
+	return nil,"" //rslt
 }
 
 

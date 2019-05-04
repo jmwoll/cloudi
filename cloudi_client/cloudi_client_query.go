@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "math"
     "net"
     "strings"
     "strconv"
@@ -88,11 +89,15 @@ func levenshteinDistance(s, t string) int {
     return d[len(s)][len(t)]
 }
 
+func levenstheinMinimumRatio() float64 {
+    return 0.25
+}
 
-func findFile (toFind, serverAddress string) string {
+func findFile (toFind, serverAddress string) (float64,string,string) {
+    ratio := 0.0
     allFiles,statusCode := listAllFiles(serverAddress)
     if statusCode != "" {
-        return statusCode
+        return 0.0,"",statusCode
     }
     matchedFile := ""
     minDist := 5000 /* assume str len << 5000 */
@@ -102,7 +107,10 @@ func findFile (toFind, serverAddress string) string {
         // Then we probably have to split at path sep
         // to only compare the file name without dir name.     
         curDist := levenshteinDistance(file,toFind)
-        if curDist < minDist {
+        maxL := math.Max(float64(len(file)),float64(len(toFind)))
+        ratio = float64(curDist) / maxL
+        ratio = 1.0 - ratio
+        if curDist < minDist && ratio > levenstheinMinimumRatio() {
             minDist = curDist
             matchedFile = file
         }
@@ -112,7 +120,7 @@ func findFile (toFind, serverAddress string) string {
     if matchedFile != "" {
         statusCode += fetchFile(matchedFile, serverAddress)
     }
-    return statusCode
+    return ratio,matchedFile,statusCode
 }
 
 

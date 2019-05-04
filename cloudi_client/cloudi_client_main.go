@@ -30,10 +30,15 @@ func main(){
 	} 
 	if actionType == "find" {
 		fileQuery := os.Args[2]
-		statusMsg := findFile(fileQuery,serverAddress)
+		ratio,fileFound,statusMsg := findFile(fileQuery,serverAddress)
 		if statusMsg != "" {
 			fmt.Print(ansiColor("red"))
 			fmt.Println(statusMsg)
 		}
+		if ratio > levenstheinMinimumRatio() { 
+			fmt.Print(ansiColor("green"))
+			fmt.Println("found file and copied it into cwd:"+fileFound)
+		}
 	}
+
 }

@@ -15,8 +15,24 @@ import (
 // Needs to be same as in server...
 const BUFFERSIZE = 1024
 
-func fetchFile(fileNameQueryArg string) string {
-  serverAddress := "localhost:27001"
+
+// FetchFile mercilessly tries to fetch a file
+// with the supplied clearname <fileNamyQueryArg>
+// from the server. If the file with *exactly this name*
+// does not exist on the server, an error message
+// will be returned as a string.
+// If the file is found on the server, it is copied
+// into the current working directory on the client.
+// Then, a sha1 hash checksum check is performed to
+// assert that the file has been correctly transferred
+// from the server to the client. If the check sums
+// don't match, a meaningful error message is returned
+// as a string. 
+// This method guarantees that if the error message string
+// returned *is empty*, then the client now has a
+// correct copy of the target file in the current working dir.
+func fetchFile(fileNameQueryArg,serverAddress string) string {
+  // e.g. serverAddress := "localhost:27001"
   statusCode := "" /* Empty string signals success */
 	connection, err := net.Dial("tcp", serverAddress)
 	if err != nil {

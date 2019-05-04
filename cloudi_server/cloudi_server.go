@@ -11,6 +11,7 @@ import (
   "crypto/sha1"
 )
 
+// Must match with client 
 const BUFFERSIZE = 1024
 
 func main() {

@@ -15,7 +15,7 @@ import (
 // Needs to be same as in server...
 const BUFFERSIZE = 1024
 
-func main() {
+func fetchFile(fileNameQueryArg string) {
 	connection, err := net.Dial("tcp", "localhost:27001")
 	if err != nil {
 		panic(err)
@@ -24,7 +24,7 @@ func main() {
   // --- Modified the server to receive the filename from 
   // --- the client. So the client now needs to send
   // --- the filename of interest to server. Let's do this here:
-  fileNameQuery := fillString(os.Args[1],512)
+  fileNameQuery := fillString(fileNameQueryArg,512)
   fmt.Println("fileNameQuery="+fileNameQuery)
   connection.Write([]byte(fileNameQuery))
   // ---

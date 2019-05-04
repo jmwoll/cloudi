@@ -12,6 +12,48 @@ func fuzzyStringMatch (){
 }
 
 
+// see http://www.golangprograms.com/golang-program-for-implementation-of-levenshtein-distance.html
+/*func levenshteinDistance2(argStr1, argStr2 string) int {
+    str1 := []rune(argStr1)
+    str2 := []rune(argStr2)
+    s1len := len(str1)
+    s2len := len(str2)
+    column := make([]int, len(str1)+1)
+ 
+    for y := 1; y <= s1len; y++ {
+        column[y] = y
+    }
+    for x := 1; x <= s2len; x++ {
+        column[0] = x
+        lastkey := x - 1
+        for y := 1; y <= s1len; y++ {
+            oldkey := column[y]
+            var incr int
+            if str1[y-1] != str2[x-1] {
+                incr = 1
+            }
+ 
+            column[y] = minimum(column[y]+1, column[y-1]+1, lastkey+incr)
+            lastkey = oldkey
+        }
+    }
+    return column[s1len]
+}
+ 
+func minimum(a, b, c int) int {
+    if a < b {
+        if a < c {
+            return a
+        }
+    } else {
+        if b < c {
+            return b
+        }
+    }
+    return c
+}
+*/
+
 
 
 // See http://rosettacode.org/wiki/Levenshtein_distances
@@ -47,7 +89,31 @@ func levenshteinDistance(s, t string) int {
 }
 
 
-
+func findFile (toFind, serverAddress string) string {
+    allFiles,statusCode := listAllFiles(serverAddress)
+    if statusCode != "" {
+        return statusCode
+    }
+    matchedFile := ""
+    minDist := 5000 /* assume str len << 5000 */
+    for _,file := range(allFiles){
+        // TODO: file will probably be a full path,
+        // and as such consist of directory+file.
+        // Then we probably have to split at path sep
+        // to only compare the file name without dir name.     
+        curDist := levenshteinDistance(file,toFind)
+        if curDist < minDist {
+            minDist = curDist
+            matchedFile = file
+        }
+    }
+    fmt.Println("toFind:"+toFind)
+    fmt.Println("THE MATCHED FILE IS:"+matchedFile)
+    if matchedFile != "" {
+        statusCode += fetchFile(matchedFile, serverAddress)
+    }
+    return statusCode
+}
 
 
 
@@ -82,8 +148,9 @@ func  listAllFiles (serverAddress string) ([]string,string) {
     listOfFiles := make([]byte,numBytes)
     connection.Read(listOfFiles)
     listOfFilesStr := string(listOfFiles)
-    fmt.Println("|||| =>"+listOfFilesStr)
-	return nil,statusCode //rslt
+    //fmt.Println("|||| =>"+listOfFilesStr)
+    rslt := strings.Split(listOfFilesStr,":")
+	return rslt,statusCode //rslt
 }
 
 

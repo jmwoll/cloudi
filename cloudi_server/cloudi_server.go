@@ -86,6 +86,11 @@ func allFilesInCurrentDir() []string {
 	var filesList []string
 	err := filepath.Walk(".",
     func(path string, info os.FileInfo, err error) error {
+			if path == "." {
+				// skip the reference to cwd
+				// as it is annoying for fuzzy searches... 
+				return nil
+			}
 			if err != nil {
 					return err
 			}

@@ -29,8 +29,25 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("Client connected")
-		go sendFileToClient(connection)
+    // go sendFileToClient(connection)
+    go requestHandler(connection)
 	}
+}
+
+func requestHandler(connection net.Conn) {
+  requestTypeBytes := make([]byte, 512)
+  connection.Read(requestTypeBytes)
+  requestType := strings.Trim(string(requestTypeBytes),":")
+  fmt.Println("RequestType="+requestType)
+  if requestType == "fetchFile" {
+    sendFileToClient(connection)
+  }
+}
+
+
+func sendAllFilesInformation(connection net.Conn) {
+  fmt.Println("Sending allFilesInformation")
+
 }
 
 

@@ -43,6 +43,20 @@ func fetchFile(fileNameQueryArg,serverAddress string) string {
     return statusCode
   }
   defer connection.Close()
+  // --- We need to inform the server that we are interested
+  // --- in a file fetch action, because from perspective
+  // --- of the server we could also perform another action.
+  actionType := "fetchFile"
+  actionType = fillString(actionType,512)
+  actionTypeBytes := []byte(actionType)
+  actionTypeBytesPadded := make([]byte,512)
+  for index,b := range actionTypeBytes {
+    actionTypeBytesPadded[index] = b
+  }
+  fmt.Println("sending::::"+string(actionTypeBytesPadded))
+  connection.Write(actionTypeBytesPadded)
+
+
   // --- Modified the server to receive the filename from 
   // --- the client. So the client now needs to send
   // --- the filename of interest to server. Let's do this here:

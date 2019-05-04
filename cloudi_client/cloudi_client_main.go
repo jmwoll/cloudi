@@ -7,9 +7,12 @@ import (
 
 func main(){
 	serverAddress := "localhost:27001"
-	fileToFetch := os.Args[1]
-	statusMsg := fetchFile(fileToFetch,serverAddress)
-	if statusMsg != "" {
-		fmt.Println(statusMsg)
+	actionType := os.Args[1]
+	if actionType == "get" {
+		fileToFetch := os.Args[2]
+		statusMsg := fetchFile(fileToFetch,serverAddress)
+		if statusMsg != "" {
+			fmt.Println(statusMsg)
+		}
 	}
 }

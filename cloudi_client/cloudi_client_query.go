@@ -4,6 +4,7 @@ import (
     "fmt"
     "net"
     "strings"
+    "strconv"
 )
 
 func fuzzyStringMatch (){
@@ -72,8 +73,16 @@ func  listAllFiles (serverAddress string) ([]string,string) {
     // returned answer bytes, so we know what to expect.
     expectedAnswerLen := make([]byte,512)
     connection.Read(expectedAnswerLen)
-    expectedAnswerLenStr := strings.Trim(string(expectedAnswerLen),":")
+    expectedAnswerLenStr := strings.Trim(strings.Trim(string(expectedAnswerLen),":"),"\x00")
     fmt.Println("##############"+expectedAnswerLenStr)
+    numBytes, err := strconv.Atoi(expectedAnswerLenStr)
+    if err != nil {
+        statusCode += err.Error()
+    }
+    listOfFiles := make([]byte,numBytes)
+    connection.Read(listOfFiles)
+    listOfFilesStr := string(listOfFiles)
+    fmt.Println("|||| =>"+listOfFilesStr)
 	return nil,statusCode //rslt
 }
 

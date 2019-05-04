@@ -55,10 +55,11 @@ func sendAllFilesInformation(connection net.Conn) {
 	filesListStr := strings.Join(filesList, ":")
 	fmt.Println(filesListStr)
 	filesListBytes := []byte(filesListStr)
-	filesListBytesLen := fillString(string(len(filesListBytes)),512)
+	filesListBytesLen := string(strconv.FormatInt(int64(len(filesListBytes)),10))//fillString(string(len(filesListBytes)),512)
+	fmt.Println("~~~~~"+filesListBytesLen)
 	// send info about byte size to client
-	connection.Write([]byte(filesListBytesLen))
-	
+	connection.Write([]byte(fillString(filesListBytesLen,512)))
+	sendInChunks(filesListBytes, connection)
 }
 
 
@@ -89,7 +90,7 @@ func allFilesInCurrentDir() []string {
 					return err
 			}
 			filesList = append(filesList, path)
-			fmt.Println(path, info.Size())
+			//fmt.Println(path, info.Size())
 			return nil
 		})
 		if err != nil {

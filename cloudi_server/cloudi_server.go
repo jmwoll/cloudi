@@ -5,6 +5,7 @@ import (
   "io"
   "io/ioutil"
 	"net"
+	"path/filepath"
 	"os"
   "strconv"
   "strings"
@@ -41,13 +42,60 @@ func requestHandler(connection net.Conn) {
   fmt.Println("RequestType="+requestType)
   if requestType == "fetchFile" {
     sendFileToClient(connection)
-  }
+	}
+	if requestType == "listAllFiles" {
+		sendAllFilesInformation(connection)
+	}
 }
 
 
 func sendAllFilesInformation(connection net.Conn) {
   fmt.Println("Sending allFilesInformation")
+	filesList := allFilesInCurrentDir()
+	filesListStr := strings.Join(filesList, ":")
+	fmt.Println(filesListStr)
+	filesListBytes := []byte(filesListStr)
+	filesListBytesLen := fillString(string(len(filesListBytes)),512)
+	// send info about byte size to client
+	connection.Write([]byte(filesListBytesLen))
+	
+}
 
+
+func sendInChunks(sourceBytes []byte, connection net.Conn){
+	sendBuffer := make([]byte, BUFFERSIZE)
+	fmt.Println("Start sending file!")
+	inBufferIdx := 0
+	for _,sourceByte := range sourceBytes {
+			if inBufferIdx == BUFFERSIZE {
+					connection.Write(sendBuffer)
+					sendBuffer = make([]byte, BUFFERSIZE)
+			} 
+			inBufferIdx = inBufferIdx % BUFFERSIZE
+			sendBuffer[inBufferIdx] = sourceByte
+			inBufferIdx += 1
+	}
+	// Consider possibility of partially full buffer
+	connection.Write(sendBuffer)
+}
+
+
+
+func allFilesInCurrentDir() []string {
+	var filesList []string
+	err := filepath.Walk(".",
+    func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+					return err
+			}
+			filesList = append(filesList, path)
+			fmt.Println(path, info.Size())
+			return nil
+		})
+		if err != nil {
+				fmt.Println(err)
+		}
+		return filesList
 }
 
 

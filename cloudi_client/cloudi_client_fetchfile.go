@@ -47,7 +47,6 @@ func fetchFile(fileNameQueryArg,serverAddress string) string {
   // --- in a file fetch action, because from perspective
   // --- of the server we could also perform another action.
   actionType := "fetchFile"
-  
   sendActionType(actionType,connection)
 
 

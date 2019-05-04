@@ -18,7 +18,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer connection.Close()
+  defer connection.Close()
+  // --- Modified the server to receive the filename from 
+  // --- the client. So the client now needs to send
+  // --- the filename of interest to server. Let's do this here:
+  fileNameQuery := os.Args[1]
+  fmt.Println("fileNameQuery="+fileNameQuery)
+  connection.Write([]byte(fileNameQuery))
+  // ---
+  // ---
+  // --- Although we send the fileName to the server already, the
+  // --- will still likely return *another file* to the client!!
+  // --- Because nobody can remember the filename 100% correctly,
+  // --- the server should perform fuzzy matching on the filename
+  // --- request coming from the client. This way, the user wont
+  // --- stumble over his own feet if he has a single typo...
+  // ---
 	fmt.Println("Connected to server, start receiving the file name and file size")
 	bufferFileName := make([]byte, 64)
 	bufferFileSize := make([]byte, 10)

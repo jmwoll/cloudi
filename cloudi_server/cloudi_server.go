@@ -5,7 +5,8 @@ import (
 	"io"
 	"net"
 	"os"
-	"strconv"
+  "strconv"
+  "strings"
 )
 
 const BUFFERSIZE = 1024
@@ -13,7 +14,7 @@ const BUFFERSIZE = 1024
 func main() {
 	server, err := net.Listen("tcp", "localhost:27001")
 	if err != nil {
-		fmt.Println("Error listetning: ", err)
+		fmt.Println("Error listening: ", err)
 		os.Exit(1)
 	}
 	defer server.Close()
@@ -32,7 +33,16 @@ func main() {
 
 func sendFileToClient(connection net.Conn) {
 	fmt.Println("A client has connected!")
-	defer connection.Close()
+  defer connection.Close()
+  // --- We want to read in the file name
+  // --- the client wants to receive from
+  // --- the connection.
+  bufferFileName := make([]byte, 64)
+  connection.Read(bufferFileName)
+  fmt.Println("So you want this file:")
+  fileNameFromClient := strings.Trim(string(bufferFileName), ":")
+  fmt.Println(fileNameFromClient)
+  // ---
 	file, err := os.Open("test.png")
 	if err != nil {
 		fmt.Println(err)

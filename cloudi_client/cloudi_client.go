@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io"
+  "io"
+  "io/ioutil"
 	"net"
 	"os"
 	"strconv"
-	"strings"
+  "strings"
+  "crypto/sha1"
 )
 
 // Have a look at https://mrwaggel.be/post/golang-transfer-a-file-over-a-tcp-socket/
@@ -22,7 +24,7 @@ func main() {
   // --- Modified the server to receive the filename from 
   // --- the client. So the client now needs to send
   // --- the filename of interest to server. Let's do this here:
-  fileNameQuery := fillString(os.Args[1],64)
+  fileNameQuery := fillString(os.Args[1],512)
   fmt.Println("fileNameQuery="+fileNameQuery)
   connection.Write([]byte(fileNameQuery))
   // ---
@@ -35,7 +37,7 @@ func main() {
   // --- stumble over his own feet if he has a single typo...
   // ---
 	fmt.Println("Connected to server, start receiving the file name and file size")
-	bufferFileName := make([]byte, 64)
+	bufferFileName := make([]byte, 512)
 	bufferFileSize := make([]byte, 10)
 	
 	connection.Read(bufferFileSize)
@@ -61,7 +63,41 @@ func main() {
 		io.CopyN(newFile, connection, BUFFERSIZE)
 		receivedBytes += BUFFERSIZE
 	}
-	fmt.Println("Received file completely!")
+  fmt.Println("Received file completely!")
+  shaHashServer := make([]byte, 20)
+  connection.Read(shaHashServer)
+  fmt.Println("The sha1 hash of the received file:")
+  fmt.Printf("%x",shaHashServer)
+  // --- Now we can compar the sha1 hash that
+  // --- the file should have based on the info 
+  // --- above with the sha1 hash we actually
+  // --- compute for the fetched file on the client
+  h := sha1.New()
+  fileBytes,err := ioutil.ReadFile(fileName)
+  h.Write(fileBytes)
+  hashSumClient := h.Sum(nil)
+  fmt.Println("actual client hash:")
+  fmt.Printf("%x",hashSumClient)
+  hashSumClientAsByteArray := make([]byte,20)
+  for idx,b := range hashSumClient {
+    hashSumClientAsByteArray[idx] = b
+  }
+  if byteArraysEqual(shaHashServer,hashSumClientAsByteArray) {
+    fmt.Println("sha1 hash matches")
+  }else{
+    fmt.Println("sha1 hash do not match:")
+    fmt.Printf("%x (on client) != %x (on server)", hashSumClientAsByteArray, shaHashServer)
+  }
+}
+
+
+func byteArraysEqual(as,bs []byte) bool {
+  for idx,a := range as {
+    if a != bs[idx] {
+      return false
+    }
+  }
+  return true
 }
 
 

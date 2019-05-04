@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io"
+  "io"
+  "io/ioutil"
 	"net"
 	"os"
   "strconv"
   "strings"
+  "crypto/sha1"
 )
 
 const BUFFERSIZE = 1024
@@ -54,7 +56,7 @@ func sendFileToClient(connection net.Conn) {
 		return
 	}
 	fileSize := fillString(strconv.FormatInt(fileInfo.Size(), 10), 10)
-	fileName := fillString(fileInfo.Name(), 64)
+	fileName := fillString(fileInfo.Name(), 512)
 	fmt.Println("Sending filename and filesize!")
 	connection.Write([]byte(fileSize))
 	connection.Write([]byte(fileName))
@@ -67,7 +69,14 @@ func sendFileToClient(connection net.Conn) {
 		}
 		connection.Write(sendBuffer)
 	}
-	fmt.Println("File has been sent, closing connection!")
+  fmt.Println("File has been sent!")
+  h := sha1.New()
+  fileBytes,err := ioutil.ReadFile(fileNameFromClient)
+  h.Write(fileBytes)
+  hashSum := h.Sum(nil)
+  fmt.Println("Server side hashsum")
+  fmt.Printf("%x",hashSum)
+  connection.Write(hashSum)
 	return
 }
 

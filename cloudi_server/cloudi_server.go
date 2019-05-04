@@ -1,29 +1,75 @@
 package main
 
-import "net"
-import "fmt"
-import "bufio"
-import "strings" // only needed below for sample processing
+import (
+	"fmt"
+	"io"
+	"net"
+	"os"
+	"strconv"
+)
+
+const BUFFERSIZE = 1024
 
 func main() {
+	server, err := net.Listen("tcp", "localhost:27001")
+	if err != nil {
+		fmt.Println("Error listetning: ", err)
+		os.Exit(1)
+	}
+	defer server.Close()
+	fmt.Println("Server started! Waiting for connections...")
+	for {
+		connection, err := server.Accept()
+		if err != nil {
+			fmt.Println("Error: ", err)
+			os.Exit(1)
+		}
+		fmt.Println("Client connected")
+		go sendFileToClient(connection)
+	}
+}
 
-  fmt.Println("Launching server...")
 
-  // listen on all interfaces
-  ln, _ := net.Listen("tcp", ":8081")
+func sendFileToClient(connection net.Conn) {
+	fmt.Println("A client has connected!")
+	defer connection.Close()
+	file, err := os.Open("test.png")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fileInfo, err := file.Stat()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fileSize := fillString(strconv.FormatInt(fileInfo.Size(), 10), 10)
+	fileName := fillString(fileInfo.Name(), 64)
+	fmt.Println("Sending filename and filesize!")
+	connection.Write([]byte(fileSize))
+	connection.Write([]byte(fileName))
+	sendBuffer := make([]byte, BUFFERSIZE)
+	fmt.Println("Start sending file!")
+	for {
+		_, err = file.Read(sendBuffer)
+		if err == io.EOF {
+			break
+		}
+		connection.Write(sendBuffer)
+	}
+	fmt.Println("File has been sent, closing connection!")
+	return
+}
 
-  // accept connection on port
-  conn, _ := ln.Accept()
 
-  // run loop forever (or until ctrl-c)
-  for {
-    // will listen for message to process ending in newline (\n)
-    message, _ := bufio.NewReader(conn).ReadString('\n')
-    // output message received
-    fmt.Print("Message Received:", string(message))
-    // sample process for string received
-    newmessage := strings.ToUpper(message)
-    // send new string back to client
-    conn.Write([]byte(newmessage + "\n"))
-  }
+func fillString(retunString string, toLength int) string {
+	for {
+		lengtString := len(retunString)
+		if lengtString < toLength {
+			retunString = retunString + ":"
+			continue
+		}
+		break
+	}
+	return retunString
 }

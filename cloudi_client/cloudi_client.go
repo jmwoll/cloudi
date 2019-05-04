@@ -1,23 +1,50 @@
 package main
 
-import "net"
-import "fmt"
-import "bufio"
-import "os"
+import (
+	"fmt"
+	"io"
+	"net"
+	"os"
+	"strconv"
+	"strings"
+)
+
+// Have a look at https://mrwaggel.be/post/golang-transfer-a-file-over-a-tcp-socket/
+// Needs to be same as in server...
+const BUFFERSIZE = 1024
 
 func main() {
-
-  // connect to this socket
-  conn, _ := net.Dial("tcp", "127.0.0.1:8081")
-  for {
-    // read in input from stdin
-    reader := bufio.NewReader(os.Stdin)
-    fmt.Print("Text to send: ")
-    text, _ := reader.ReadString('\n')
-    // send to socket
-    fmt.Fprintf(conn, text + "\n")
-    // listen for reply
-    message, _ := bufio.NewReader(conn).ReadString('\n')
-    fmt.Print("Message from server: "+message)
-  }
+	connection, err := net.Dial("tcp", "localhost:27001")
+	if err != nil {
+		panic(err)
+	}
+	defer connection.Close()
+	fmt.Println("Connected to server, start receiving the file name and file size")
+	bufferFileName := make([]byte, 64)
+	bufferFileSize := make([]byte, 10)
+	
+	connection.Read(bufferFileSize)
+	fileSize, _ := strconv.ParseInt(strings.Trim(string(bufferFileSize), ":"), 10, 64)
+	
+	connection.Read(bufferFileName)
+	fileName := strings.Trim(string(bufferFileName), ":")
+	
+	newFile, err := os.Create(fileName)
+	
+	if err != nil {
+		panic(err)
+	}
+	defer newFile.Close()
+	var receivedBytes int64
+	
+	for {
+		if (fileSize - receivedBytes) < BUFFERSIZE {
+			io.CopyN(newFile, connection, (fileSize - receivedBytes))
+			connection.Read(make([]byte, (receivedBytes+BUFFERSIZE)-fileSize))
+			break
+		}
+		io.CopyN(newFile, connection, BUFFERSIZE)
+		receivedBytes += BUFFERSIZE
+	}
+	fmt.Println("Received file completely!")
 }

@@ -135,6 +135,8 @@ func sendInChunks(sourceBytes []byte, connection net.Conn) {
 		inBufferIdx += 1
 	}
 	// Consider possibility of partially full buffer
+	// TODO: fix this part here. If we truncate the
+	// send buffer to len(sourceBytes) % BUFFERSIZE
 	connection.Write(sendBuffer)
 }
 

@@ -17,7 +17,10 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net"
+	"strconv"
 )
 
 func pushFile(fileToPush,serverAddress string) string {
@@ -36,6 +39,27 @@ func pushFile(fileToPush,serverAddress string) string {
     // --- of the server we could also perform another action.
     actionType := "pushFile"
 	sendActionType(actionType,connection)
+	// --- Now, we read in the contents of the file that we
+	// --- want to add:
+	fileBytes,err := ioutil.ReadFile(fileToPush)
+	if err != nil {
+		statusCode += "Aborting. Could not find file:\t"+fileToPush
+		statusCode += err.Error()
+		return statusCode
+	}
+	// --- The server does not know the size of the file, so
+	// --- we need to inform the server about the amount of
+	// --- bytes he has to receive.
+	fileBytesLen := string(strconv.FormatInt(int64(len(fileBytes)),10))//fillString(string(len(filesListBytes)),512)
+	fmt.Println("~~~~~"+fileBytesLen)
+	// send info about byte size to client
+	connection.Write([]byte(fillString(fileBytesLen,512)))
+	// --- Then, we send the actual bytes of the file
+	sendInChunks(fileBytes,connection)
+	// --- Now, we want the server to give us an OK about
+	// --- the upload: Did the file arrive at the server intact?
+	// --- Thus, we send the server the sha1 hash of the file:
+	
 	return ""
 }
 

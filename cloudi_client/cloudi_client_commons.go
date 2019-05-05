@@ -66,3 +66,21 @@ func ansiColor(colorName string) string {
 	return ""
 }
 
+
+/* Make sure that BUFFERSIZE is same as in server... */
+func sendInChunks(sourceBytes []byte, connection net.Conn){
+	sendBuffer := make([]byte, BUFFERSIZE)
+	fmt.Println("Start sending file!")
+	inBufferIdx := 0
+	for _,sourceByte := range sourceBytes {
+			if inBufferIdx == BUFFERSIZE {
+					connection.Write(sendBuffer)
+					sendBuffer = make([]byte, BUFFERSIZE)
+			} 
+			inBufferIdx = inBufferIdx % BUFFERSIZE
+			sendBuffer[inBufferIdx] = sourceByte
+			inBufferIdx += 1
+	}
+	// Consider possibility of partially full buffer
+	connection.Write(sendBuffer)
+}

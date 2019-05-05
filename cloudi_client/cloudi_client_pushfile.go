@@ -70,6 +70,16 @@ func pushFile(fileToPush, serverAddress string) string {
 	fmt.Println("Client side hashsum")
 	fmt.Printf("%x", hashSum)
 	connection.Write(hashSum)
-	//
-	return ""
+	// --- We have computed the sha1 hash on our client side.
+	// --- Now we want to retrieve the sha1 hash from the server,
+	// --- so we can compare the two. If the two are the same,
+	// --- then the push was successful, otherwise it was not.
+	shaOnServer := make([]byte, 20)
+	connection.Read(shaOnServer)
+	fmt.Print("The sha1 hash of the received file on server:")
+	fmt.Printf("%x", shaOnServer)
+	if byteArraysEqual(hashSum, shaOnServer) {
+		return ""
+	}
+	return "Push not successful, sha1 hashes do not match:\n" + fmt.Sprintf("%x (on client) != %x (on server)", hashSum, shaOnServer)
 }

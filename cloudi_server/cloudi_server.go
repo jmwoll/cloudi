@@ -81,19 +81,31 @@ func getFileFromClient(connection net.Conn) {
 	fileSize, _ := strconv.ParseInt(strings.Trim(string(expectedFileSizeBytes), ":"), 10, 64)
 	fileBytes := make([]byte, fileSize)
 	// --- Now that we know the number of bytes
-	// --- to receive, let's get files bytes:
+	// --- to receive, let's get the file's bytes:
 	connection.Read(fileBytes)
 	// --- In fileBytes we now have the contents
 	// --- of the files we wish to add to the server.
 	// --- Now, we need to check that the sha1 sum matches,
-	// --- and only then store the file to server.
+	// --- and only then store the file on the server.
+	// --- First step: get sha1 hash from client
+	shaOnClient := make([]byte, 20)
+	connection.Read(shaOnClient)
+	fmt.Print("The sha1 hash of the received file on client:")
+	fmt.Printf("%x", shaOnClient)
+	// --- Second step: compute sha1 hash on server
 	h := sha1.New()
-	//fileBytes,err := ioutil.ReadFile(fileNameFromClient)
 	h.Write(fileBytes)
 	hashSum := h.Sum(nil)
 	fmt.Println("Server side hashsum")
 	fmt.Printf("%x", hashSum)
 	connection.Write(hashSum)
+	successfulPush := byteArraysEqual(hashSum, shaOnClient)
+	if successfulPush {
+		fmt.Println("Push on server successful")
+	} else {
+		fmt.Println("Push on server failed. Sha1 hashes do not match:")
+		fmt.Printf("%x (on client) != %x (on server)", shaOnClient, hashSum)
+	}
 }
 
 func sendAllFilesInformation(connection net.Conn) {
@@ -205,4 +217,13 @@ func fillString(retunString string, toLength int) string {
 		break
 	}
 	return retunString
+}
+
+func byteArraysEqual(as, bs []byte) bool {
+	for idx, a := range as {
+		if a != bs[idx] {
+			return false
+		}
+	}
+	return true
 }

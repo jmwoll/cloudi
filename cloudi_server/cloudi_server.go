@@ -73,7 +73,7 @@ func getFileFromClient(connection net.Conn) {
 	// --- name of the file from the client:
 	nameOfFileToAddBytes := make([]byte, 512)
 	connection.Read(nameOfFileToAddBytes)
-	nameOfFile := string(nameOfFileToAddBytes)
+	nameOfFile := strings.Trim(string(nameOfFileToAddBytes), ":")
 	fmt.Println("So you want to add the file:\t" + nameOfFile)
 	expectedFileSizeBytes := make([]byte, 512)
 	connection.Read(expectedFileSizeBytes)
@@ -102,6 +102,11 @@ func getFileFromClient(connection net.Conn) {
 	successfulPush := byteArraysEqual(hashSum, shaOnClient)
 	if successfulPush {
 		fmt.Println("Push on server successful")
+		err := ioutil.WriteFile(nameOfFile, fileBytes, 0644)
+		if err != nil {
+			fmt.Println("Error writing file:")
+			fmt.Println(err.Error())
+		}
 	} else {
 		fmt.Println("Push on server failed. Sha1 hashes do not match:")
 		fmt.Printf("%x (on client) != %x (on server)", shaOnClient, hashSum)
@@ -137,6 +142,7 @@ func sendInChunks(sourceBytes []byte, connection net.Conn) {
 	// Consider possibility of partially full buffer
 	// TODO: fix this part here. If we truncate the
 	// send buffer to len(sourceBytes) % BUFFERSIZE
+	// TODO: apply same fix to client code...
 	connection.Write(sendBuffer)
 }
 

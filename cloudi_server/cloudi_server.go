@@ -80,6 +80,11 @@ func getFileFromClient(connection net.Conn) {
 	//expectedFileSizeStr := strings.Trim(string(expectedFileSize), ":")
 	fileSize, _ := strconv.ParseInt(strings.Trim(string(expectedFileSizeBytes), ":"), 10, 64)
 	fileBytes := make([]byte, fileSize)
+	// --- First step: get sha1 hash from client
+	shaOnClient := make([]byte, 20)
+	connection.Read(shaOnClient)
+	fmt.Print("The sha1 hash of the received file on client:")
+	fmt.Printf("%x", shaOnClient)
 	// --- Now that we know the number of bytes
 	// --- to receive, let's get the file's bytes:
 	connection.Read(fileBytes)
@@ -87,11 +92,6 @@ func getFileFromClient(connection net.Conn) {
 	// --- of the files we wish to add to the server.
 	// --- Now, we need to check that the sha1 sum matches,
 	// --- and only then store the file on the server.
-	// --- First step: get sha1 hash from client
-	shaOnClient := make([]byte, 20)
-	connection.Read(shaOnClient)
-	fmt.Print("The sha1 hash of the received file on client:")
-	fmt.Printf("%x", shaOnClient)
 	// --- Second step: compute sha1 hash on server
 	h := sha1.New()
 	h.Write(fileBytes)

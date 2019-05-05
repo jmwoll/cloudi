@@ -58,8 +58,6 @@ func pushFile(fileToPush, serverAddress string) string {
 	fmt.Println("~~~~~" + fileBytesLen)
 	// send info about byte size to client
 	connection.Write([]byte(fillString(fileBytesLen, 512)))
-	// --- Then, we send the actual bytes of the file
-	sendInChunks(fileBytes, connection)
 	// --- Now, we want the server to give us an OK about
 	// --- the upload: Did the file arrive at the server intact?
 	// --- Thus, we send the server the sha1 hash of the file:
@@ -70,6 +68,8 @@ func pushFile(fileToPush, serverAddress string) string {
 	fmt.Println("Client side hashsum")
 	fmt.Printf("%x", hashSum)
 	connection.Write(hashSum)
+	// --- Then, we send the actual bytes of the file
+	sendInChunks(fileBytes, connection)
 	// --- We have computed the sha1 hash on our client side.
 	// --- Now we want to retrieve the sha1 hash from the server,
 	// --- so we can compare the two. If the two are the same,
